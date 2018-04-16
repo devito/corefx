@@ -1,31 +1,49 @@
-// Licensed to the .NET Foundation under one or more agreements.
-// The .NET Foundation licenses this file to you under the MIT license.
-// See the LICENSE file in the project root for more information.
+//depot/DevDiv/private/Whidbey_Xws/ndp/fx/src/Net/System/UriScheme.cs#4 - edit change 914456 (text)
+/*++
+Copyright (c) Microsoft Corporation
 
-using System.Globalization;
+Module Name:
 
-namespace System
-{
+    UriScheme.cs
+
+Abstract:
+    Provides extensibility contract for System.Uri
+    The contains only public API definition.
+
+    For remaining internal stuff please refer to the _UriSyntax.cs file.
+
+Author:
+
+    Alexei Vopilov    19-Dec-2003
+
+Revision History:
+    Alexei Vopilov    60-July-2004  - Changed the extensiblity model to be based purely on derivation, also has cut Config extensibility option
+
+
+--*/
+namespace System {
+    using System.Net;
+    using System.Globalization;
+    using System.Security.Permissions;
+
     //
     // The class is used as a base for custom uri parsing and derived Uri factoring.
     // A set of protected .ctors allows to hookup on the builtin parser behaviors.
     //
     // A developer must implement at least internal default .ctor to participate in the Uri extensibility game.
     //
-    public abstract partial class UriParser
-    {
+    public abstract partial class UriParser {
+
         internal string SchemeName
         {
             get
             {
-                return _scheme;
+                return m_Scheme;
             }
         }
-        internal int DefaultPort
-        {
-            get
-            {
-                return _port;
+        internal int DefaultPort {
+            get {
+                return m_Port;
             }
         }
 
@@ -37,7 +55,7 @@ namespace System
         // However when the ctor is called from OnCreateUri context the calling parser
         // settings will later override the result on the base class
         //
-        protected UriParser() : this(SchemeOnlyFlags) { }
+        protected UriParser(): this (SchemeOnlyFlags) { }
 
         //
         // Is called on each Uri ctor for every non-simple parser i.e. the one that does have
@@ -47,15 +65,14 @@ namespace System
         {
             return this;
         }
-
         //
         // Is called whenever a parser gets registered with some scheme
-        // The base implementation is a nop.
+        // The base implementaion is a nop.
         //
         protected virtual void OnRegister(string schemeName, int defaultPort)
         {
-        }
 
+        }
         //
         // Parses and validates a Uri object, is called at the Uri ctor time.
         //
@@ -65,7 +82,6 @@ namespace System
         {
             parsingError = uri.ParseMinimal();
         }
-
         //
         // Resolves a relative Uri object into new AbsoluteUri.
         //
@@ -78,7 +94,7 @@ namespace System
         protected virtual string Resolve(Uri baseUri, Uri relativeUri, out UriFormatException parsingError)
         {
             if (baseUri.UserDrivenParsing)
-                throw new InvalidOperationException(SR.Format(SR.net_uri_UserDrivenParsing, this.GetType().ToString()));
+                throw new InvalidOperationException(SR.Format(SR.net_uri_UserDrivenParsing, this.GetType().FullName));
 
             if (!baseUri.IsAbsoluteUri)
                 throw new InvalidOperationException(SR.net_uri_NotAbsolute);
@@ -97,14 +113,17 @@ namespace System
             return newUriString;
         }
 
-        protected virtual bool IsBaseOf(Uri baseUri, Uri relativeUri)
+        //
+        //
+        //
+        protected virtual  bool IsBaseOf(Uri baseUri, Uri relativeUri)
         {
             return baseUri.IsBaseOfHelper(relativeUri);
         }
 
         //
-        // This method is invoked to allow a custom parser to override the
-        // internal parser when serving application with Uri component strings.
+        // This method is invoked to allow a cutsom parser to override the
+        // internal parser when serving application with Uri componenet strings.
         // The output format depends on the "format" parameter
         //
         // Parameters:
@@ -112,18 +131,18 @@ namespace System
         //  uriFormat       - The requested output format.
         //
         // This method returns:
-        // The final result. The base implementation could be invoked to get a suggested value
+        // The final result. The base impementaion could be invoked to get a suggested value
         //
         protected virtual string GetComponents(Uri uri, UriComponents components, UriFormat format)
         {
             if (((components & UriComponents.SerializationInfoString) != 0) && components != UriComponents.SerializationInfoString)
-                throw new ArgumentOutOfRangeException(nameof(components), components, SR.net_uri_NotJustSerialization);
+                throw new ArgumentOutOfRangeException("components", components, SR.net_uri_NotJustSerialization);
 
             if ((format & ~UriFormat.SafeUnescaped) != 0)
-                throw new ArgumentOutOfRangeException(nameof(format));
+                throw new ArgumentOutOfRangeException("format");
 
             if (uri.UserDrivenParsing)
-                throw new InvalidOperationException(SR.Format(SR.net_uri_UserDrivenParsing, this.GetType().ToString()));
+                throw new InvalidOperationException(SR.Format(SR.net_uri_UserDrivenParsing, this.GetType().FullName));
 
             if (!uri.IsAbsoluteUri)
                 throw new InvalidOperationException(SR.net_uri_NotAbsolute);
@@ -131,6 +150,9 @@ namespace System
             return uri.GetComponentsHelper(components, format);
         }
 
+        //
+        //
+        //
         protected virtual bool IsWellFormedOriginalString(Uri uri)
         {
             return uri.InternalIsWellFormedOriginalString();
@@ -145,36 +167,35 @@ namespace System
         public static void Register(UriParser uriParser, string schemeName, int defaultPort)
         {
             if (uriParser == null)
-                throw new ArgumentNullException(nameof(uriParser));
- 
+                throw new ArgumentNullException("uriParser");
+
             if (schemeName == null)
-                throw new ArgumentNullException(nameof(schemeName));
- 
+                throw new ArgumentNullException("schemeName");
+
             if (schemeName.Length == 1)
-                throw new ArgumentOutOfRangeException(nameof(schemeName));
- 
+                throw new ArgumentOutOfRangeException("schemeName");
+
             if (!Uri.CheckSchemeName(schemeName))
-                throw new ArgumentOutOfRangeException(nameof(schemeName));
- 
+                throw new ArgumentOutOfRangeException("schemeName");
+
             if ((defaultPort >= 0xFFFF || defaultPort < 0) && defaultPort != -1)
-                throw new ArgumentOutOfRangeException(nameof(defaultPort));
- 
-            schemeName = schemeName.ToLower();
+                throw new ArgumentOutOfRangeException("defaultPort");
+
+            schemeName = schemeName.ToLower(CultureInfo.InvariantCulture);
             FetchSyntax(uriParser, schemeName, defaultPort);
         }
-
         //
         // Is a Uri scheme known to System.Uri?
         //
         public static bool IsKnownScheme(string schemeName)
         {
             if (schemeName == null)
-                throw new ArgumentNullException(nameof(schemeName));
+                throw new ArgumentNullException("schemeName");
 
             if (!Uri.CheckSchemeName(schemeName))
-                throw new ArgumentOutOfRangeException(nameof(schemeName));
+                throw new ArgumentOutOfRangeException("schemeName");
 
-            UriParser syntax = UriParser.GetSyntax(schemeName.ToLowerInvariant());
+            UriParser syntax = UriParser.GetSyntax(schemeName.ToLower(CultureInfo.InvariantCulture));
             return syntax != null && syntax.NotAny(UriSyntaxFlags.V1_UnknownUri);
         }
     }

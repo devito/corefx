@@ -1,14 +1,29 @@
-// Licensed to the .NET Foundation under one or more agreements.
-// The .NET Foundation licenses this file to you under the MIT license.
-// See the LICENSE file in the project root for more information.
+//------------------------------------------------------------------------------
+// <copyright file="URIPartial.cs" company="Microsoft">
+//     Copyright (c) Microsoft Corporation.  All rights reserved.
+// </copyright>
+//------------------------------------------------------------------------------
 
-namespace System
-{
-    public enum UriPartial
-    {
+namespace System {
+    /// <devdoc>
+    ///    <para>[To be supplied.]</para>
+    /// </devdoc>
+    public enum UriPartial {
+        /// <devdoc>
+        ///    <para>[To be supplied.]</para>
+        /// </devdoc>
         Scheme,
+        /// <devdoc>
+        ///    <para>[To be supplied.]</para>
+        /// </devdoc>
         Authority,
+        /// <devdoc>
+        ///    <para>[To be supplied.]</para>
+        /// </devdoc>
         Path,
+        /// <devdoc>
+        ///    <para> Denotes a left part of a uri up to and including the query </para>
+        /// </devdoc>
         Query
     }
 }

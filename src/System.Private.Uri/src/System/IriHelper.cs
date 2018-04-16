@@ -1,13 +1,9 @@
-// Licensed to the .NET Foundation under one or more agreements.
-// The .NET Foundation licenses this file to you under the MIT license.
-// See the LICENSE file in the project root for more information.
-
-using System.Diagnostics;
-using System.Runtime.InteropServices;
-using System.Text;
-
-namespace System
+namespace System 
 {
+    using System.Diagnostics;
+    using System.Runtime.InteropServices;
+    using System.Text;
+
     internal static class IriHelper
     {
         //
@@ -24,16 +20,16 @@ namespace System
         //
         // Check if highSurr and lowSurr are a surrogate pair then 
         // it checks if the combined char is in the range
-        // Takes in isQuery because iri restrictions for query are different
+        // Takes in isQuery because because iri restrictions for query are different
         //
         internal static bool CheckIriUnicodeRange(char highSurr, char lowSurr, ref bool surrogatePair, bool isQuery)
         {
             bool inRange = false;
             surrogatePair = false;
 
-            Debug.Assert(char.IsHighSurrogate(highSurr));
+            Debug.Assert(Char.IsHighSurrogate(highSurr));
 
-            if (char.IsSurrogatePair(highSurr, lowSurr))
+            if (Char.IsSurrogatePair(highSurr, lowSurr))
             {
                 surrogatePair = true;
                 char[] chars = new char[2] { highSurr, lowSurr };
@@ -80,7 +76,7 @@ namespace System
         }
 
         //
-        // Check reserved chars according to RFC 3987 in a specific component
+        // Check reserved chars according to rfc 3987 in a sepecific component
         //
         internal static bool CheckIsReserved(char ch, UriComponents component)
         {
@@ -93,14 +89,13 @@ namespace System
                     (component != UriComponents.Fragment)
                 )
             {
-                return (component == (UriComponents)0) ? UriHelper.IsGenDelim(ch) : false;
+                return (component == (UriComponents)0) ? Uri.IsGenDelim(ch) : false;
             }
-            else if (UriParser.DontEnableStrictRFC3986ReservedCharacterSets)
+            else
             {
-                // Since we aren't enabling strict RFC 3986 reserved sets, we stick with the old behavior
-                // (for app-compat) which was a broken mix of RFCs 2396 and 3986.
                 switch (component)
                 {
+                    // Reserved chars according to rfc 3987
                     case UriComponents.UserInfo:
                         if (ch == '/' || ch == '?' || ch == '#' || ch == '[' || ch == ']' || ch == '@')
                             return true;
@@ -126,18 +121,15 @@ namespace System
                 }
                 return false;
             }
-            else
-            {
-                return (UriHelper.RFC3986ReservedMarks.IndexOf(ch) >= 0);
-            }
         }
-
+        
         //
         // IRI normalization for strings containing characters that are not allowed or 
         // escaped characters that should be unescaped in the context of the specified Uri component.
         //
         internal static unsafe string EscapeUnescapeIri(char* pInput, int start, int end, UriComponents component)
         {
+
             char[] dest = new char[end - start];
             byte[] bytes = null;
 
@@ -146,7 +138,7 @@ namespace System
             char* pDest = (char*)destHandle.AddrOfPinnedObject();
 
             const int percentEncodingLen = 3; // Escaped UTF-8 will take 3 chars: %AB.
-            const int bufferCapacityIncrease = 30 * percentEncodingLen;
+            const int bufferCapacityIncrease = 30 * percentEncodingLen; 
             int bufferRemaining = 0;
 
             int next = start;
@@ -165,23 +157,23 @@ namespace System
                     if (next + 2 < end)
                     {
                         ch = UriHelper.EscapedAscii(pInput[next + 1], pInput[next + 2]);
-
+                                                
                         // Do not unescape a reserved char
                         if (ch == Uri.c_DummyChar || ch == '%' || CheckIsReserved(ch, component) || UriHelper.IsNotSafeForUnescape(ch))
                         {
                             // keep as is
-                            Debug.Assert(dest.Length > destOffset, "Destination length exceeded destination offset.");
+                            Debug.Assert(dest.Length > destOffset, "Buffer overrun detected");
                             pDest[destOffset++] = pInput[next++];
-                            Debug.Assert(dest.Length > destOffset, "Destination length exceeded destination offset.");
+                            Debug.Assert(dest.Length > destOffset, "Buffer overrun detected");
                             pDest[destOffset++] = pInput[next++];
-                            Debug.Assert(dest.Length > destOffset, "Destination length exceeded destination offset.");
+                            Debug.Assert(dest.Length > destOffset, "Buffer overrun detected");
                             pDest[destOffset++] = pInput[next];
                             continue;
                         }
                         else if (ch <= '\x7F')
                         {
                             Debug.Assert(ch < 0xFF, "Expecting ASCII character.");
-                            Debug.Assert(dest.Length > destOffset, "Destination length exceeded destination offset.");
+                            Debug.Assert(dest.Length > destOffset, "Buffer overrun detected");
                             //ASCII
                             pDest[destOffset++] = ch;
                             next += 2;
@@ -231,10 +223,9 @@ namespace System
 
 
                             // Using encoder with no replacement fall-back will skip all invalid UTF-8 sequences.
-                            Encoding noFallbackCharUTF8 = Encoding.GetEncoding(
-                                                                                Encoding.UTF8.CodePage,
-                                                                                new EncoderReplacementFallback(""),
-                                                                                new DecoderReplacementFallback(""));
+                            Encoding noFallbackCharUTF8 = (Encoding)Encoding.UTF8.Clone();
+                            noFallbackCharUTF8.EncoderFallback = new EncoderReplacementFallback("");
+                            noFallbackCharUTF8.DecoderFallback = new DecoderReplacementFallback("");
 
                             char[] unescapedChars = new char[bytes.Length];
                             int charCount = noFallbackCharUTF8.GetChars(bytes, 0, byteCount, unescapedChars, 0);
@@ -254,15 +245,17 @@ namespace System
                                 // copy escaped sequence as is
                                 for (int i = startSeq; i <= next; ++i)
                                 {
-                                    Debug.Assert(dest.Length > destOffset, "Destination length exceeded destination offset.");
+                                    Debug.Assert(dest.Length > destOffset, "Buffer overrun detected");
                                     pDest[destOffset++] = pInput[i];
                                 }
                             }
+
                         }
+
                     }
                     else
                     {
-                        Debug.Assert(dest.Length > destOffset, "Destination length exceeded destination offset.");
+                        Debug.Assert(dest.Length > destOffset, "Buffer overrun detected");
                         pDest[destOffset++] = pInput[next];
                     }
                 }
@@ -272,16 +265,16 @@ namespace System
 
                     char ch2;
 
-                    if ((char.IsHighSurrogate(ch)) && (next + 1 < end))
+                    if ((Char.IsHighSurrogate(ch)) && (next + 1 < end))
                     {
                         ch2 = pInput[next + 1];
                         escape = !CheckIriUnicodeRange(ch, ch2, ref surrogatePair, component == UriComponents.Query);
                         if (!escape)
                         {
                             // copy the two chars
-                            Debug.Assert(dest.Length > destOffset, "Destination length exceeded destination offset.");
+                            Debug.Assert(dest.Length > destOffset, "Buffer overrun detected");
                             pDest[destOffset++] = pInput[next++];
-                            Debug.Assert(dest.Length > destOffset, "Destination length exceeded destination offset.");
+                            Debug.Assert(dest.Length > destOffset, "Buffer overrun detected");
                             pDest[destOffset++] = pInput[next];
                         }
                     }
@@ -289,10 +282,10 @@ namespace System
                     {
                         if (CheckIriUnicodeRange(ch, component == UriComponents.Query))
                         {
-                            if (!UriHelper.IsBidiControlCharacter(ch) || !UriParser.DontKeepUnicodeBidiFormattingCharacters)
+                            if (!Uri.IsBidiControlCharacter(ch))
                             {
                                 // copy it
-                                Debug.Assert(dest.Length > destOffset, "Destination length exceeded destination offset.");
+                                Debug.Assert(dest.Length > destOffset, "Buffer overrun detected");
                                 pDest[destOffset++] = pInput[next];
                             }
                         }
@@ -306,15 +299,15 @@ namespace System
                 else
                 {
                     // just copy the character
-                    Debug.Assert(dest.Length > destOffset, "Destination length exceeded destination offset.");
+                    Debug.Assert(dest.Length > destOffset, "Buffer overrun detected");
                     pDest[destOffset++] = pInput[next];
                 }
 
                 if (escape)
                 {
-                    const int MaxNumberOfBytesEncoded = 4;
+                    const int maxNumberOfBytesEncoded = 4;
 
-                    if (bufferRemaining < MaxNumberOfBytesEncoded * percentEncodingLen)
+                    if (bufferRemaining < maxNumberOfBytesEncoded * percentEncodingLen)
                     {
                         int newBufferLength = 0;
 
@@ -324,12 +317,19 @@ namespace System
                             newBufferLength = dest.Length + bufferCapacityIncrease;
                             bufferRemaining += bufferCapacityIncrease;
                         }
-
+                        
                         char[] newDest = new char[newBufferLength];
 
                         fixed (char* pNewDest = newDest)
                         {
-                            Buffer.MemoryCopy((byte*)pDest, (byte*)pNewDest, newBufferLength * sizeof(char), destOffset * sizeof(char));
+#if !UT_PUBLIC_DEPENDS
+                            LegacyBuffer.Memcpy((byte*)pNewDest, (byte*)pDest, destOffset * sizeof(char));
+#else
+                            for (int idx=0; idx<destOffset; idx++)
+                            {
+                                pNewDest[idx] = pDest[idx];
+                            }                            
+#endif
                         }
 
                         if (destHandle.IsAllocated)
@@ -344,11 +344,11 @@ namespace System
                         pDest = (char*)destHandle.AddrOfPinnedObject();
                     }
 
-                    byte[] encodedBytes = new byte[MaxNumberOfBytesEncoded];
-                    fixed (byte* pEncodedBytes = &encodedBytes[0])
+                    byte[] encodedBytes = new byte[maxNumberOfBytesEncoded];
+                    fixed (byte* pEncodedBytes = encodedBytes)
                     {
-                        int encodedBytesCount = Encoding.UTF8.GetBytes(pInput + next, surrogatePair ? 2 : 1, pEncodedBytes, MaxNumberOfBytesEncoded);
-                        Debug.Assert(encodedBytesCount <= MaxNumberOfBytesEncoded, "UTF8 encoder should not exceed specified byteCount");
+                        int encodedBytesCount = Encoding.UTF8.GetBytes(pInput + next, surrogatePair ? 2 : 1, pEncodedBytes, maxNumberOfBytesEncoded);
+                        Debug.Assert(encodedBytesCount <= maxNumberOfBytesEncoded, "UTF8 encoder should not exceed specified byteCount");
 
                         bufferRemaining -= encodedBytesCount * percentEncodingLen;
 
@@ -363,7 +363,7 @@ namespace System
             if (destHandle.IsAllocated)
                 destHandle.Free();
 
-            Debug.Assert(destOffset <= dest.Length, "Destination length met or exceeded destination offset.");
+            Debug.Assert(destOffset <= dest.Length, "Buffer overrun detected");
             return new string(dest, 0, destOffset);
         }
     }

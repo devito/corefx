@@ -1,8 +1,28 @@
-// Licensed to the .NET Foundation under one or more agreements.
-// The .NET Foundation licenses this file to you under the MIT license.
-// See the LICENSE file in the project root for more information.
+//------------------------------------------------------------------------------
+// <copyright file="GenericUriParser.cs" company="Microsoft">
+//     Copyright (c) Microsoft Corporation.  All rights reserved.
+// </copyright>
+//------------------------------------------------------------------------------
+
+/*++
+Abstract:
+
+    This is a public sealed class that exposes various Uri parsing options
+    suported by built in Uri parser
+
+Author:
+    Alexei Vopilov    Jul 26 2004
+
+Revision History:
+--*/
+
+
 
 namespace System {
+
+    using System.Globalization;
+    using System.Collections;
+    using System.Security.Permissions;
 
     //
     // This enum specifies the public options used to customize a hierarchical built-in parser.
@@ -34,7 +54,7 @@ namespace System {
         // Disables a fragment. A # char is considered as part of the path or query and is escaped
         NoFragment                 = 0x20,
 
-        // if false then converta \ to /, otherwise does this conversion for the Path component.
+        // if false then converta \ to /, otheriwse does this conversion for the Path component.
         DontConvertPathBackslashes = 0x40,
 
         // if false, then a/./b or a/.../b becomes a/b and /a/../b becomes /b
@@ -51,13 +71,22 @@ namespace System {
         //  normalized, bidi control characters are removed, unicode char limits are checked
         IriParsing = 0x400
     }
-
+    //
+    // A hierachical Uri parser that supports various customization options
+    //
+    // ATTN: This type must be compile-time registered with UriParser.CheckSetIsSimpleFlag() method
+    //      to avoid calling into the user code if there is no one.
+    //
     public class GenericUriParser: UriParser
     {
-        public GenericUriParser(GenericUriParserOptions options) : base(MapGenericParserOptions(options))
+        //
+        // The only availabe .ctor.
+        //
+        public GenericUriParser(GenericUriParserOptions options)
+            : base(MapGenericParserOptions(options))
         {
         }
-
+        //
         private static UriSyntaxFlags MapGenericParserOptions(GenericUriParserOptions options)
         {
             //
@@ -128,17 +157,24 @@ namespace System {
 
         private const UriSyntaxFlags DefaultGenericUriParserFlags =
                                                                     UriSyntaxFlags.MustHaveAuthority |
+                                                                    //
                                                                     UriSyntaxFlags.MayHaveUserInfo |
                                                                     UriSyntaxFlags.MayHavePort |
                                                                     UriSyntaxFlags.MayHavePath |
                                                                     UriSyntaxFlags.MayHaveQuery |
                                                                     UriSyntaxFlags.MayHaveFragment |
-                                                                    UriSyntaxFlags.AllowUncHost |
+                                                                    //
+                                                                    UriSyntaxFlags.AllowUncHost |       //
                                                                     UriSyntaxFlags.AllowAnInternetHost |
+                                                                    //
                                                                     UriSyntaxFlags.PathIsRooted |
+                                                                    //
                                                                     UriSyntaxFlags.ConvertPathSlashes |
                                                                     UriSyntaxFlags.CompressPath |
                                                                     UriSyntaxFlags.CanonicalizeAsFilePath |
                                                                     UriSyntaxFlags.UnEscapeDotsAndSlashes;
+
+
     }
 }
+

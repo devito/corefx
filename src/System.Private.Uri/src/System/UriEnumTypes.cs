@@ -1,15 +1,28 @@
-// Licensed to the .NET Foundation under one or more agreements.
-// The .NET Foundation licenses this file to you under the MIT license.
-// See the LICENSE file in the project root for more information.
+/*++
+Copyright (c) 2003 Microsoft Corporation
 
+Module Name:
+
+    UriEnumTypes.cs
+
+Abstract:
+
+    Defines enum types used by System.Uri class
+
+Author:
+    Alexei Vopilov    Nov 21 2003
+
+Revision History:
+
+--*/
 namespace System
 {
-    // Used to control whether absolute or relative URIs are used
-    public enum UriKind
-    {
-        RelativeOrAbsolute = 0,
-        Absolute = 1,
-        Relative = 2
+
+    // Used to control whether absolu
+    public enum UriKind {
+        RelativeOrAbsolute  = 0,
+        Absolute            = 1,
+        Relative            = 2
     }
 
     [Flags]
@@ -17,23 +30,23 @@ namespace System
     {
         // Generic parts.
         // ATTN: The values must stay in sync with Uri.Flags.xxxNotCanonical
-        Scheme = 0x1,
-        UserInfo = 0x2,
-        Host = 0x4,
-        Port = 0x8,
-        Path = 0x10,
-        Query = 0x20,
-        Fragment = 0x40,
+        Scheme      = 0x1,
+        UserInfo    = 0x2,
+        Host        = 0x4,
+        Port        = 0x8,
+        Path        = 0x10,
+        Query       = 0x20,
+        Fragment    = 0x40,
 
-        StrongPort = 0x80,
+        StrongPort  = 0x80,
         NormalizedHost = 0x100,
 
         // This will also return respective delimiters for scheme, userinfo or port
-        // Valid only for a single component requests.
+        // Valid only for a single componet requests.
         KeepDelimiter = 0x40000000,
 
         // This is used by GetObjectData and can also be used directly.
-        // Works for both absolute and relative Uris
+        // Works for both absolute and relaitve Uris
         SerializationInfoString = unchecked((int)0x80000000),
 
         // Shortcuts for general cases
@@ -52,18 +65,19 @@ namespace System
         // If the unescaped sequence results in a new escaped sequence, it will revert to the original sequence.
 
         // This value is reserved for the default ToString() format that is historically none of the above.
+        // If VsWhidbey#353711 gets approved the usage has to be replaced with UriFormat.SafeUnescape
         // V1ToStringUnescape = 0x7FFF  
     }
 
     // This is used to control when host names are converted to idn names and
     // vice versa
-    internal enum UriIdnScope
+    public enum UriIdnScope
     {
         None,                   // Never use Idn
         AllExceptIntranet,      // Use Idn in Internet and not intranet
         All                     // Internet and intranet
     }
-
+    
     internal enum ParsingError
     {
         // looks good

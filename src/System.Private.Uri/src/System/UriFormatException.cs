@@ -1,37 +1,55 @@
-// Licensed to the .NET Foundation under one or more agreements.
-// The .NET Foundation licenses this file to you under the MIT license.
-// See the LICENSE file in the project root for more information.
+//------------------------------------------------------------------------------
+// <copyright file="URIFormatException.cs" company="Microsoft">
+//     Copyright (c) Microsoft Corporation.  All rights reserved.
+// </copyright>
+//------------------------------------------------------------------------------
 
-using System.Runtime.Serialization;
-
-namespace System
-{
-    /// <summary>
-    /// An exception class used when an invalid Uniform Resource Identifier is detected.
-    /// </summary>
+namespace System {
+    using System.Runtime.Serialization;
+    /// <devdoc>
+    ///    <para>
+    ///       An exception class used when an invalid Uniform Resource Identifier is detected.
+    ///    </para>
+    /// </devdoc>
     [Serializable]
-    [System.Runtime.CompilerServices.TypeForwardedFrom("System, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")]
-    public class UriFormatException : FormatException, ISerializable
-    {
-        public UriFormatException() : base()
-        {
+    public class UriFormatException : FormatException, ISerializable {
+
+        // constructors
+
+        /// <devdoc>
+        ///    <para>[To be supplied.]</para>
+        /// </devdoc>
+        public UriFormatException() : base() {
         }
 
-        public UriFormatException(string textString) : base(textString)
-        {
+        /// <devdoc>
+        ///    <para>[To be supplied.]</para>
+        /// </devdoc>
+        public UriFormatException(string textString) : base(textString) {
         }
 
-        public UriFormatException(string textString, Exception e) : base(textString, e)
-        {
+        /// <devdoc>
+        ///    <para>[To be supplied.]</para>
+        /// </devdoc>
+        public UriFormatException(string textString, Exception e) : base(textString, e) {
         }
 
-        protected UriFormatException(SerializationInfo serializationInfo, StreamingContext streamingContext) : base(serializationInfo, streamingContext)
-        {
+        protected UriFormatException(SerializationInfo serializationInfo, StreamingContext streamingContext)
+            : base(serializationInfo, streamingContext) {
         }
 
-        void ISerializable.GetObjectData(SerializationInfo serializationInfo, StreamingContext streamingContext)
-        {
+        /// <internalonly/>
+        void ISerializable.GetObjectData(SerializationInfo serializationInfo, StreamingContext streamingContext) {
             base.GetObjectData(serializationInfo, streamingContext);
         }
-    }
-}
+
+        // accessors
+
+        // methods
+
+        // data
+
+    }; // class UriFormatException
+
+
+} // namespace System

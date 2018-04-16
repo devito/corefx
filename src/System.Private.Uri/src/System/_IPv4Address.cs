@@ -1,15 +1,17 @@
-// Licensed to the .NET Foundation under one or more agreements.
-// The .NET Foundation licenses this file to you under the MIT license.
-// See the LICENSE file in the project root for more information.
+//------------------------------------------------------------------------------
+// <copyright file="_IPv4Address.cs" company="Microsoft">
+//     Copyright (c) Microsoft Corporation.  All rights reserved.
+// </copyright>
+//------------------------------------------------------------------------------
 
 using System.Diagnostics;
 
-namespace System
-{
+namespace System {
+
     // The class designed as to keep minimal the working set of Uri class.
     // The idea is to stay with static helper methods and strings
-    internal static class IPv4AddressHelper
-    {
+    internal static class IPv4AddressHelper {
+
         internal const long Invalid = -1;
         // Note: the native parser cannot handle MaxIPv4Value, only MaxIPv4Value - 1
         private const long MaxIPv4Value = UInt32.MaxValue;
@@ -21,32 +23,17 @@ namespace System
 
         // methods
         // Parse and canonicalize
-        internal static string ParseCanonicalName(string str, int start, int end, ref bool isLoopback)
-        {
-            unsafe
-            {
+        internal static string ParseCanonicalName(string str, int start, int end, ref bool isLoopback) {
+            unsafe {
                 byte* numbers = stackalloc byte[NumberOfLabels];
                 isLoopback = Parse(str, numbers, start, end);
-
-                Span<char> stackSpace = stackalloc char[NumberOfLabels * 3 + 3];
-                int totalChars = 0, charsWritten;
-                for (int i = 0; i < 3; i++)
-                {
-                    numbers[i].TryFormat(stackSpace.Slice(totalChars), out charsWritten);
-                    int periodPos = totalChars + charsWritten;
-                    stackSpace[periodPos] = '.';
-                    totalChars = periodPos + 1;
-                }
-                numbers[3].TryFormat(stackSpace.Slice(totalChars), out charsWritten);
-                return new string(stackSpace.Slice(0, totalChars + charsWritten));
+                return numbers[0] + "." + numbers[1] + "." + numbers[2] + "." + numbers[3];
             }
         }
 
         // Only called from the IPv6Helper, only parse the canonical format
-        internal static int ParseHostNumber(string str, int start, int end)
-        {
-            unsafe
-            {
+        internal static int ParseHostNumber(string str, int start, int end) {
+            unsafe {
                 byte* numbers = stackalloc byte[NumberOfLabels];
                 ParseCanonical(str, numbers, start, end);
                 return (numbers[0] << 24) + (numbers[1] << 16) + (numbers[2] << 8) + numbers[3];
@@ -94,9 +81,8 @@ namespace System
         //  Nothing
         //
 
-        //Remark: MUST NOT be used unless all input indexes are verified and trusted.
-        internal static unsafe bool IsValid(char* name, int start, ref int end, bool allowIPv6, bool notImplicitFile, bool unknownScheme)
-        {
+        //Remark: MUST NOT be used unless all input indexes are are verified and trusted.
+        internal unsafe static bool IsValid(char* name, int start, ref int end, bool allowIPv6, bool notImplicitFile, bool unknownScheme) {
             // IPv6 can only have canonical IPv4 embedded. Unknown schemes will not attempt parsing of non-canonical IPv4 addresses.
             if (allowIPv6 || unknownScheme)
             {
@@ -121,32 +107,25 @@ namespace System
         //                 / "2" %x30-34 DIGIT     ; 200-249
         //                 / "25" %x30-35          ; 250-255
         //
-        internal static unsafe bool IsValidCanonical(char* name, int start, ref int end, bool allowIPv6, bool notImplicitFile)
-        {
+        internal unsafe static bool IsValidCanonical(char* name, int start, ref int end, bool allowIPv6, bool notImplicitFile) {
             int dots = 0;
             int number = 0;
             bool haveNumber = false;
             bool firstCharIsZero = false;
 
-            while (start < end)
-            {
+            while (start < end) {
                 char ch = name[start];
-                if (allowIPv6)
-                {
+                if (allowIPv6) {
                     // for ipv4 inside ipv6 the terminator is either ScopeId, prefix or ipv6 terminator
                     if (ch == ']' || ch == '/' || ch == '%') break;
                 }
-                else if (ch == '/' || ch == '\\' || (notImplicitFile && (ch == ':' || ch == '?' || ch == '#')))
-                {
+                else if (ch == '/' || ch == '\\' || (notImplicitFile && (ch == ':' || ch == '?' || ch == '#'))) {
                     break;
                 }
 
-                if (ch <= '9' && ch >= '0')
-                {
-                    if (!haveNumber && (ch == '0'))
-                    {
-                        if ((start + 1 < end) && name[start + 1] == '0')
-                        {
+                if (ch <= '9' && ch >= '0') {
+                    if (!haveNumber && (ch == '0')) {
+                        if ((start + 1 < end) && name[start + 1] == '0') {
                             // 00 is not allowed as a prefix.
                             return false;
                         }
@@ -156,15 +135,11 @@ namespace System
 
                     haveNumber = true;
                     number = number * 10 + (name[start] - '0');
-                    if (number > 255)
-                    {
+                    if (number > 255) {
                         return false;
                     }
-                }
-                else if (ch == '.')
-                {
-                    if (!haveNumber || (number > 0 && firstCharIsZero))
-                    {
+                } else if (ch == '.') {
+                    if (!haveNumber || (number > 0 && firstCharIsZero)) {
                         // 0 is not allowed to prefix a number.
                         return false;
                     }
@@ -172,30 +147,27 @@ namespace System
                     haveNumber = false;
                     number = 0;
                     firstCharIsZero = false;
-                }
-                else
-                {
+                } else {
                     return false;
                 }
                 ++start;
             }
             bool res = (dots == 3) && haveNumber;
-            if (res)
-            {
+            if (res) {
                 end = start;
             }
             return res;
         }
 
-        // Parse any canonical or non-canonical IPv4 formats and return a long between 0 and MaxIPv4Value.
+        // Parse any canonical or noncanonical IPv4 formats and return a long between 0 and MaxIPv4Value.
         // Return Invalid (-1) for failures.
         // If the address has less than three dots, only the rightmost section is assumed to contain the combined value for
         // the missing sections: 0xFF00FFFF == 0xFF.0x00.0xFF.0xFF == 0xFF.0xFFFF
-        internal static unsafe long ParseNonCanonical(char* name, int start, ref int end, bool notImplicitFile)
+        internal unsafe static long ParseNonCanonical(char* name, int start, ref int end, bool notImplicitFile)
         {
             int numberBase = Decimal;
             char ch;
-            Span<long> parts = stackalloc long[4];
+            long[] parts = new long[4];
             long currentValue = 0;
             bool atLeastOneChar = false;
 
@@ -266,9 +238,9 @@ namespace System
                 if (current < end && name[current] == '.')
                 {
                     if (dotCount >= 3 // Max of 3 dots and 4 segments
-                        || !atLeastOneChar // No empty segments: 1...1
-                                           // Only the last segment can be more than 255 (if there are less than 3 dots)
-                        || currentValue > 0xFF)
+                        || !atLeastOneChar // No empty segmets: 1...1
+                        // Only the last segment can be more than 255 (if there are less than 3 dots)
+                        || currentValue > 0xFF) 
                     {
                         return Invalid;
                     }
@@ -301,7 +273,7 @@ namespace System
             }
 
             parts[dotCount] = currentValue;
-
+            
             // Parsed, reassemble and check for overflows
             switch (dotCount)
             {
@@ -312,13 +284,13 @@ namespace System
                     }
                     return parts[0];
                 case 1: // 0xFF.0xFFFFFF
-                    if (parts[1] > 0xffffff)
+                    if (parts[1] > 0xffffff) 
                     {
                         return Invalid;
                     }
                     return (parts[0] << 24) | (parts[1] & 0xffffff);
                 case 2: // 0xFF.0xFF.0xFFFF
-                    if (parts[2] > 0xffff)
+                    if (parts[2] > 0xffff) 
                     {
                         return Invalid;
                     }
@@ -333,14 +305,13 @@ namespace System
                     return Invalid;
             }
         }
-
+        
         //
         // Parse
         //
         //  Convert this IPv4 address into a sequence of 4 8-bit numbers
         //
-        private static unsafe bool Parse(string name, byte* numbers, int start, int end)
-        {
+        unsafe private static bool Parse(string name, byte* numbers, int start, int end) {
             fixed (char* ipString = name)
             {
                 int changedEnd = end;
@@ -348,13 +319,10 @@ namespace System
                 // end includes ports, so changedEnd may be different from end
                 Debug.Assert(result != Invalid, "Failed to parse after already validated: " + name);
 
-                unchecked
-                {
-                    numbers[0] = (byte)(result >> 24);
-                    numbers[1] = (byte)(result >> 16);
-                    numbers[2] = (byte)(result >> 8);
-                    numbers[3] = (byte)(result);
-                }
+                numbers[0] = (byte)(result >> 24);
+                numbers[1] = (byte)(result >> 16);
+                numbers[2] = (byte)(result >> 8);
+                numbers[3] = (byte)(result);
             }
 
             return numbers[0] == 127;
@@ -365,14 +333,12 @@ namespace System
         //  of 8-bit numbers and the characters '.'
         //  Address may terminate with ':' or with the end of the string
         //
-        private static unsafe bool ParseCanonical(string name, byte* numbers, int start, int end)
-        {
-            for (int i = 0; i < NumberOfLabels; ++i)
-            {
+        unsafe private static bool ParseCanonical(string name, byte* numbers, int start, int end) {
+            for (int i = 0; i < NumberOfLabels; ++i) {
+
                 byte b = 0;
                 char ch;
-                for (; (start < end) && (ch = name[start]) != '.' && ch != ':'; ++start)
-                {
+                for (; (start < end) && (ch = name[start]) != '.' && ch != ':'; ++start) {
                     b = (byte)(b * 10 + (byte)(ch - '0'));
                 }
                 numbers[i] = b;

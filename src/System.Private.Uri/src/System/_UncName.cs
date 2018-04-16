@@ -1,29 +1,29 @@
-// Licensed to the .NET Foundation under one or more agreements.
-// The .NET Foundation licenses this file to you under the MIT license.
-// See the LICENSE file in the project root for more information.
-
+#if !PLATFORM_UNIX
+//------------------------------------------------------------------------------
+// <copyright file="_UncName.cs" company="Microsoft">
+//     Copyright (c) Microsoft Corporation.  All rights reserved.
+// </copyright>
+//------------------------------------------------------------------------------
 using System.Globalization;
 
-namespace System
-{
+namespace System {
+
     // The class designed as to keep minimal the working set of Uri class.
     // The idea is to stay with static helper methods and strings
-    internal class UncNameHelper
-    {
-        // fields
+    internal class UncNameHelper {
+
+    // fields
 
         internal const int MaximumInternetNameLength = 256;
 
-        private UncNameHelper()
-        {
+        private UncNameHelper() {
         }
 
 
-        // properties
+    // properties
 
-        // methods
-        internal static string ParseCanonicalName(string str, int start, int end, ref bool loopback)
-        {
+    // methods
+        internal static string ParseCanonicalName(string str, int start, int end, ref bool loopback) {
             return DomainNameHelper.ParseCanonicalName(str, start, end, ref loopback);
         }
 
@@ -48,12 +48,11 @@ namespace System
         //
         //
         // Assumption is the caller will check on the resulting name length
-        // Remarks:  MUST NOT be used unless all input indexes are verified and trusted.
-        internal static unsafe bool IsValid(char* name, ushort start, ref int returnedEnd, bool notImplicitFile)
-        {
-            ushort end = (ushort)returnedEnd;
+        // Remarks:  MUST NOT be used unless all input indexes are are verified and trusted.
+        internal unsafe static bool IsValid(char* name, ushort start, ref int returnedEnd, bool notImplicitFile) {
+            ushort end = (ushort) returnedEnd;
 
-            if (start == end)
+            if (start==end)
                 return false;
             //
             // First segment could consist of only '_' or '-' but it cannot be all digits or empty
@@ -72,7 +71,7 @@ namespace System
                     ++i;
                     break;
                 }
-                if (char.IsLetter(name[i]) || name[i] == '-' || name[i] == '_')
+                if (Char.IsLetter(name[i]) || name[i] == '-' || name[i] == '_')
                 {
                     validShortName = true;
                 }
@@ -96,7 +95,7 @@ namespace System
                 }
                 else if (name[i] == '.')
                 {
-                    if (!validShortName || ((i - 1) >= start && name[i - 1] == '.'))
+                    if (!validShortName || ((i-1) >= start && name[i-1] == '.'))
                         return false;
 
                     validShortName = false;
@@ -106,7 +105,7 @@ namespace System
                     if (!validShortName)
                         return false;
                 }
-                else if (char.IsLetter(name[i]) || (name[i] >= '0' && name[i] <= '9'))
+                else if (Char.IsLetter(name[i]) || (name[i] >= '0' && name[i] <= '9'))
                 {
                     if (!validShortName)
                         validShortName = true;
@@ -116,7 +115,7 @@ namespace System
             }
 
             // last segment can end with the dot
-            if (((i - 1) >= start && name[i - 1] == '.'))
+            if (((i-1) >= start && name[i-1] == '.'))
                 validShortName = true;
 
             if (!validShortName)
@@ -129,3 +128,4 @@ namespace System
         }
     }
 }
+#endif // !PLATFORM_UNIX

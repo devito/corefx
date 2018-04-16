@@ -22,17 +22,23 @@
     <Compile Include="$(CommonPath)\System\Collections\Generic\LowLevelDictionary.cs">
       <Link>Common\System\Collections\Generic\LowLevelDictionary.cs</Link>
     </Compile>
+    <Compile Include="System\Buffer.cs" />
+    <Compile Include="System\IInternetSecurityManager.cs" />
+    <Compile Include="System\InternetSecurityManager.cs" />
+    <Compile Include="System\SecurityZone.cs" />
+    <Compile Include="System\UnsafeNativeMethods.cs" />
+    <Compile Include="System\_DomainName.cs" />
+    <Compile Include="System\_IPv4Address.cs" />
+    <Compile Include="System\_IPv6Address.cs" />
+    <Compile Include="System\_UncName.cs" />
+    <Compile Include="System\_UriSyntax.cs" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="FxCopBaseline.cs" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="System\DomainNameHelper.cs" />
     <Compile Include="System\GenericUriParser.cs" />
-    <Compile Include="System\IPv4AddressHelper.cs" />
-    <Compile Include="System\IPv6AddressHelper.cs" />
     <Compile Include="System\IriHelper.cs" />
-    <Compile Include="System\UncNameHelper.cs" />
     <Compile Include="System\Uri.cs" />
     <Compile Include="System\UriBuilder.cs" />
     <Compile Include="System\UriEnumTypes.cs" />
@@ -43,7 +49,6 @@
     <Compile Include="System\UriParserTemplates.cs" />
     <Compile Include="System\UriPartial.cs" />
     <Compile Include="System\UriScheme.cs" />
-    <Compile Include="System\UriSyntax.cs" />
   </ItemGroup>
   <ItemGroup Condition="'$(TargetsWindows)' == 'true'">
     <Compile Include="System\Uri.Windows.cs" />
